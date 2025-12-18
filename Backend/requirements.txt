@@ -1,0 +1,10 @@
+# requirements.txt
+
+fastapi[all]
+uvicorn[standard]
+motor
+python-multipart
+Pillow
+google-genai
+pydantic
+python-dotenv
