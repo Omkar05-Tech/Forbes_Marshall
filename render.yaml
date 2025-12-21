@@ -1,9 +1,9 @@
 services:
-  # 1. MongoDB Service (Private Worker)
-  - type: worker
+  # 1. MongoDB Service (Private Service is better for DBs)
+  - type: pserv
     name: forbes-db
     runtime: docker
-    image: mongo:latest # Pulls official image
+    image: mongo:latest
     disk:
       name: mongo-data
       mountPath: /data/db
@@ -20,7 +20,7 @@ services:
       - key: MONGO_URI
         value: mongodb://forbes-db:27017/forbes_marshall_temp
       - key: GOOGLE_API_KEY
-        sync: false # You will paste this in the Render UI
+        sync: false # Render will prompt you for this key in the Dashboard
       - key: DB_NAME
         value: forbes_marshall_temp
     healthCheckPath: /api/health
