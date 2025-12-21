@@ -20,6 +20,9 @@ services:
       - "8000:8000"
     env_file:
       - ./backend/.env
+    environment:
+      # Explicitly override MONGO_URI to use the container name
+      - MONGO_URI=mongodb://mongodb:27017
     volumes:
       - ./backend:/app
     depends_on:
