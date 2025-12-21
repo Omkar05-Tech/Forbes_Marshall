@@ -12,33 +12,33 @@ services:
   # FastAPI Backend Service
   backend:
     build:
-      context: ./backend
+      context: ./Backend
       dockerfile: Dockerfile
     image: forbes_marshall_backend
     container_name: forbes_marshall_api
     ports:
       - "8000:8000"
     env_file:
-      - ./backend/.env
+      - ./Backend/.env
     environment:
       # Explicitly override MONGO_URI to use the container name
       - MONGO_URI=mongodb://mongodb:27017
     volumes:
-      - ./backend:/app
+      - ./Backend:/app
     depends_on:
       - mongodb
 
   # React Frontend Service
   frontend:
     build:
-      context: ./frontend
+      context: ./Frontend
       dockerfile: Dockerfile
     image: forbes_marshall_frontend
     container_name: forbes_marshall_ui
     ports:
       - "5173:5173"
     volumes:
-      - ./frontend:/app
+      - ./Frontend:/app
       - /app/node_modules
     depends_on:
       - backend
