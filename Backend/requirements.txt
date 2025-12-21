@@ -5,6 +5,7 @@ uvicorn[standard]
 motor
 python-multipart
 Pillow
-google-genai
+google-generativeai
 pydantic
 python-dotenv
+pymupdf
