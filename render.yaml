@@ -13,7 +13,7 @@ services:
   - type: web
     name: forbes-backend
     runtime: docker
-    dockerContext: ./backend
+    dockerContext: ./Backend
     dockerfile: Dockerfile
     plan: free
     envVars:
@@ -29,7 +29,7 @@ services:
   - type: web
     name: forbes-frontend
     runtime: docker
-    dockerContext: ./frontend
+    dockerContext: ./Frontend
     dockerfile: Dockerfile
     plan: free
     envVars:
