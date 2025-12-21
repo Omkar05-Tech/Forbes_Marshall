@@ -1,5 +1,5 @@
 services:
-  # 1. MongoDB Service (Private Service is better for DBs)
+  # 1. MongoDB Service (Change type to pserv)
   - type: pserv
     name: forbes-db
     runtime: docker
@@ -20,10 +20,10 @@ services:
       - key: MONGO_URI
         value: mongodb://forbes-db:27017/forbes_marshall_temp
       - key: GOOGLE_API_KEY
-        sync: false # Render will prompt you for this key in the Dashboard
+        sync: false 
       - key: DB_NAME
         value: forbes_marshall_temp
-    healthCheckPath: /api/health
+    healthCheckPath: /api/health # This requires the endpoint below
 
   # 3. React Frontend
   - type: web
