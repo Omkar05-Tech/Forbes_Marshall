@@ -6,8 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # --- Gemini Configuration ---
-GEMINI_API_KEY = os.getenv("GOOGLE_API_KEY", "AIzaSyDTQvqTS3giN3t_VxKQ4nT9QgjvaDGXI3I")
-# GEMINI_API_KEY = "AIzaSyDTQvqTS3giN3t_VxKQ4nT9QgjvaDGXI3I"
+GEMINI_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 # --- MongoDB Configuration ---
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")

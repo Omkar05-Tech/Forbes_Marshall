@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
 import { ArrowLeft, Save, Loader2, Edit3, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { API_BASE_URL } from '../services/api';
 
 const DATA_MAPPING = {
   's_cv1': {
@@ -19,21 +21,11 @@ const DATA_MAPPING = {
     'd8_upper': 'Tolerance d8 (Upper)',
     'd8_lower': 'Tolerance d8 (Lower)',
   },
-
-
-
-
-  // --- NEW: SLOTTED NUT MAPPINGS ---
   'sn_cv1': {
     'total_len': 'Total Length',
     'thread_spec': 'Thread Specification',
     'chamfer_val': 'Chamfer Value'
   },
-
-
-
-
-  // --- NEW: 80NB 300 CAGE (Profile) ---
   'c_cv1': {
     'cage_id': 'Inner Diameter (H7)',
     'cage_od_body': 'Body OD (Positive)',
@@ -52,10 +44,6 @@ const DATA_MAPPING = {
     'h7_upper': 'H7 Upper Limit',
     'h7_lower': 'H7 Lower Limit',
   },
-
-
-
-  // --- NEW: EXT TOP COMPONENT (Zone 1) ---
   'et_cv1': {
     'step1_dia': 'Step 1 Dia (f7)',
     'step1_len': 'Step 1 Length',
@@ -80,7 +68,6 @@ const DATA_MAPPING = {
     'detail_relief_depth': 'Relief Depth',
     'detail_radius': 'Relief Radius',
   },
-  // --- NEW: EXT TOP COMPONENT (Zone 2) ---
   'et_cv2': {
     'total_length': 'Total Length',
     'back_step1_dia': 'Back Step 1 Dia',
@@ -98,15 +85,11 @@ const DATA_MAPPING = {
     'groove_dist': 'Groove Distance',
     'groove_spec': 'Groove Spec',
   },
-  // --- NEW: EXT TOP COMPONENT (Zone 3) ---
   'et_cv3': {
     'hole_count': 'Hole Count',
     'hole_diameter': 'Hole Diameter',
     'pcd_value': 'PCD Value',
   },
-
-
-
   'ab_cv1': {
     'bar_dia': 'Bar Diameter',
     'bar_len': 'Bar Length',
@@ -143,8 +126,6 @@ const DATA_MAPPING = {
     'r_groove_final': 'Final Groove Radius',
     'r_groove_final_tol': 'Final Groove Rad Tol'
   },
-
-  // --- ADJUSTMENT BOLT (Table) ---
   'ab_cv2': {
     'c9_lower': 'C9 Lower Limit',
     'c9_upper': 'C9 Upper Limit',
@@ -155,11 +136,6 @@ const DATA_MAPPING = {
     'len_tol_upper': 'Len Tol Upper',
     'len_tol_lower': 'Len Tol Lower'
   },
-
-
-
-
-  // --- GLAND NUT (Left Profile) ---
   'gn_cv1': {
     'cb_dia_inner_h11': 'Inner CB Dia (H11)',
     'bore_dia_f8': 'Inner Bore Dia (F8)',
@@ -174,8 +150,6 @@ const DATA_MAPPING = {
     'thread_spec': 'Thread Spec',
     'groove_angle_formb': 'Form B Angle'
   },
-
-  // --- GLAND NUT (Right Profile) ---
   'gn_cv2': {
     'bore_dia_h11_plus': 'Bore Dia (+0.1)',
     'groove_dia_neg_tol': 'Groove Dia (-0.1)',
@@ -185,8 +159,6 @@ const DATA_MAPPING = {
     'groove_width_tol_value': 'Groove Width Tol',
     'r_thread_bottom': 'Thread Bottom Radius'
   },
-
-  // --- GLAND NUT (Table) ---
   'gn_cv3': {
     'tol_h11_upper': 'H11 Upper Limit',
     'tol_f8_lower': 'F8 Lower Limit',
@@ -194,11 +166,6 @@ const DATA_MAPPING = {
     'tol_e5_lower': 'e5 Lower Limit',
     'material_type': 'Material Type'
   },
-
-
-
-
-
   'p_cv1': {
     'shaft_dia_main': 'Shaft Main Dia',
     'rolling_len_text': 'Rolling Length',
@@ -210,8 +177,6 @@ const DATA_MAPPING = {
     'thread_end_chamfer': 'Thread Chamfer',
     'minor_dia_bracket': 'Minor Dia (Bracket)'
   },
-
-  // --- PLUG (Head End) ---
   'p_cv2': {
     'overall_len': 'Total Overall Length',
     'head_dia': 'Head Diameter',
@@ -223,18 +188,11 @@ const DATA_MAPPING = {
     'surface_finish': 'Surface Roughness (Ra)',
     'marking_text': 'Engraving Text'
   },
-
-  // --- PLUG (Table) ---
   'p_cv3': {
     'tol_upper_limit': 'Tolerance Upper',
     'tol_lower_limit': 'Tolerance Lower',
     'tol_standard_ref': 'ISO Standard'
   },
-
-
-
-
-  // --- 80MM BODY (Main Bore) ---
   'fb_cv1': {
     'face_from_center_dim': 'Face from Center',
     'main_turn_thk': 'Top Flange Thickness',
@@ -256,8 +214,6 @@ const DATA_MAPPING = {
     'flange_chf_angle': 'Flange Chf Angle',
     'flange_chf_maint_dia': 'Flange Chf Maint Dia'
   },
-
-  // --- 80MM BODY (Side Flange) ---
   'fb_cv2': {
     'flange_2_pcd': 'Side PCD',
     'flange_2_count': 'Side Hole Count',
@@ -266,8 +222,6 @@ const DATA_MAPPING = {
     'tap_hole_count': 'Tap Count',
     'side_flange_od': 'Side Flange OD'
   },
-
-  // --- 80MM BODY (Top Flange) ---
   'fb_cv3': {
     'flange_1_pcd': 'Top PCD',
     'flange_1_count': 'Top Hole Count',
@@ -276,8 +230,6 @@ const DATA_MAPPING = {
     'chf_2_angle': 'Internal Chf Angle',
     'chf_2_size': 'Internal Chf Size'
   },
-
-  // --- 80MM BODY (Tables) ---
   'fb_cv4': {
     'face_from_center_tol': 'Center Tol (120-315)',
     'main_bore_h7_tol': 'H7 Tolerance',
@@ -290,8 +242,7 @@ const DATA_MAPPING = {
   }
 };
 
-const VerificationPage = ({ tasks, componentName, geminiResults, onBack, onFinalSubmit }) => {
-  
+const VerificationPage = ({ tasks, componentName, geminiResults, uploadId, onBack, onFinish }) => {
   const [items, setItems] = useState(() => 
     tasks.filter(t => t.croppedImage).map(task => ({
       id: task.id,
@@ -299,7 +250,6 @@ const VerificationPage = ({ tasks, componentName, geminiResults, onBack, onFinal
       croppedImage: task.croppedImage,
       isLoading: true, 
       data: [],      
-      confidence: 0,
       zoom: 1 
     }))
   );
@@ -308,14 +258,13 @@ const VerificationPage = ({ tasks, componentName, geminiResults, onBack, onFinal
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const hasProcessed = useRef(false);
 
   useEffect(() => {
     if (!geminiResults || hasProcessed.current) return;
     hasProcessed.current = true;
-
-    console.log("Processing Results:", geminiResults);
 
     setItems(prevItems => prevItems.map(item => {
       const allowedKeysMap = DATA_MAPPING[item.id] || {};
@@ -345,7 +294,7 @@ const VerificationPage = ({ tasks, componentName, geminiResults, onBack, onFinal
         }
       });
 
-      return { ...item, isLoading: false, confidence: 90, data: mappedData };
+      return { ...item, isLoading: false, data: mappedData };
     }));
   }, [geminiResults]);
 
@@ -373,7 +322,7 @@ const VerificationPage = ({ tasks, componentName, geminiResults, onBack, onFinal
   };
 
   const handleWheel = (e, itemId) => {
-    e.preventDefault(); e.stopPropagation();
+    e.preventDefault();
     const delta = -e.deltaY * 0.001;
     setItems(prev => prev.map(item => {
       if (item.id !== itemId) return item;
@@ -383,9 +332,12 @@ const VerificationPage = ({ tasks, componentName, geminiResults, onBack, onFinal
   };
 
   const handleMouseDown = (e, ref) => {
-    e.preventDefault(); setIsPanning(true); setPanStart({ x: e.clientX, y: e.clientY });
+    e.preventDefault(); 
+    setIsPanning(true); 
+    setPanStart({ x: e.clientX, y: e.clientY });
     if (ref.current) setPanOffset({ x: ref.current.scrollLeft, y: ref.current.scrollTop });
   };
+
   const handleMouseMove = (e, ref) => {
     if (!isPanning || !ref.current) return;
     e.preventDefault();
@@ -394,17 +346,30 @@ const VerificationPage = ({ tasks, componentName, geminiResults, onBack, onFinal
     ref.current.scrollLeft = panOffset.x - dx;
     ref.current.scrollTop = panOffset.y - dy;
   };
+
   const handleMouseUp = () => setIsPanning(false);
 
-  const handleSaveAll = () => {
+  // --- API LOGIC: GENERATE REPORT ---
+  const handleSaveAll = async () => {
     if (items.some(i => i.isLoading)) return;
+    setIsSubmitting(true);
+
     const flatPayload = {};
     items.forEach(item => {
         item.data.forEach(field => {
             if (field.originalKey) flatPayload[field.originalKey] = field.value;
         });
     });
-    onFinalSubmit(flatPayload);
+
+    try {
+        const response = await axios.post(`${API_BASE_URL}/report/${uploadId}`, flatPayload);
+        onFinish(response.data.final_description); 
+    } catch (error) {
+        console.error("Final Report Generation Failed:", error);
+        alert("Failed to generate final report. Check console for details.");
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   const allFinished = !items.some(i => i.isLoading);
@@ -420,15 +385,37 @@ const VerificationPage = ({ tasks, componentName, geminiResults, onBack, onFinal
           </div>
         </div>
         <div className="flex items-center space-x-4">
-          {!allFinished && <div className="text-xs font-medium text-indigo-600 flex items-center bg-indigo-50 px-3 py-1 rounded-full animate-pulse"><Loader2 className="w-3 h-3 mr-2 animate-spin" />Processing...</div>}
-          <button onClick={handleSaveAll} disabled={!allFinished} className={`flex items-center px-6 py-2 rounded-lg font-bold shadow-md transition-all ${allFinished ? 'bg-green-600 hover:bg-green-700 text-white active:scale-95' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}><Save className="w-4 h-4 mr-2" />Submit Verified Data</button>
+          {(isSubmitting || !allFinished) && (
+            <div className="text-xs font-medium text-indigo-600 flex items-center bg-indigo-50 px-3 py-1 rounded-full animate-pulse">
+              <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+              {isSubmitting ? 'Generating Report...' : 'Processing...'}
+            </div>
+          )}
+          <button 
+            onClick={handleSaveAll} 
+            disabled={!allFinished || isSubmitting} 
+            className={`flex items-center px-6 py-2 rounded-lg font-bold shadow-md transition-all ${allFinished && !isSubmitting ? 'bg-green-600 hover:bg-green-700 text-white active:scale-95' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+          >
+            <Save className="w-4 h-4 mr-2" />
+            Submit Verified Data
+          </button>
         </div>
       </div>
 
       <div className="flex-1 p-8 overflow-y-auto">
         <div className="max-w-7xl mx-auto grid grid-cols-1 gap-8">
           {items.map((item) => (
-            <ImageCard key={item.id} item={item} activeHighlight={activeHighlight} setActiveHighlight={setActiveHighlight} handleFieldChange={handleFieldChange} handleZoomBtn={handleZoomBtn} handleWheel={handleWheel} isPanning={isPanning} onPanStart={handleMouseDown} onPanMove={handleMouseMove} onPanEnd={handleMouseUp} />
+            <ImageCard 
+              key={item.id} 
+              item={item} 
+              activeHighlight={activeHighlight} 
+              setActiveHighlight={setActiveHighlight} 
+              handleFieldChange={handleFieldChange} 
+              handleZoomBtn={handleZoomBtn} 
+              handleWheel={handleWheel} 
+              onPanStart={handleMouseDown} 
+              onPanMove={handleMouseMove} 
+            />
           ))}
         </div>
       </div>
@@ -436,7 +423,7 @@ const VerificationPage = ({ tasks, componentName, geminiResults, onBack, onFinal
   );
 };
 
-const ImageCard = ({ item, activeHighlight, setActiveHighlight, handleFieldChange, handleZoomBtn, handleWheel, isPanning, onPanStart, onPanMove }) => {
+const ImageCard = ({ item, activeHighlight, setActiveHighlight, handleFieldChange, handleZoomBtn, handleWheel, onPanStart, onPanMove }) => {
     const scrollContainerRef = useRef(null);
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col md:flex-row h-[500px]">
@@ -449,37 +436,69 @@ const ImageCard = ({ item, activeHighlight, setActiveHighlight, handleFieldChang
                         <button onClick={() => handleZoomBtn(item.id, 'in')} className="p-1.5 hover:bg-gray-100 rounded text-gray-600"><ZoomIn className="w-4 h-4"/></button>
                     </div>
                 </div>
-                <div ref={scrollContainerRef} className={`flex-1 overflow-auto p-4 flex items-center justify-center bg-gray-100/50 ${item.zoom > 1 ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'}`} onWheel={(e) => handleWheel(e, item.id)} onMouseDown={(e) => onPanStart(e, scrollContainerRef)} onMouseMove={(e) => onPanMove(e, scrollContainerRef)}>
+                <div 
+                    ref={scrollContainerRef} 
+                    className={`flex-1 overflow-auto p-4 flex items-center justify-center bg-gray-100/50 ${item.zoom > 1 ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'}`} 
+                    onWheel={(e) => handleWheel(e, item.id)} 
+                    onMouseDown={(e) => onPanStart(e, scrollContainerRef)} 
+                    onMouseMove={(e) => onPanMove(e, scrollContainerRef)}
+                >
                     <div className="relative transition-transform duration-100 ease-out origin-center select-none" style={{ transform: `scale(${item.zoom})`, minWidth: '100%' }}>
                         <img src={item.croppedImage} alt={item.label} draggable={false} className="w-full h-auto object-contain mix-blend-multiply shadow-sm bg-white" />
                         {activeHighlight && activeHighlight.itemId === item.id && activeHighlight.box.w > 0 && (
-                            <div className="absolute border-2 border-yellow-400 bg-yellow-400/20 shadow-[0_0_15px_rgba(250,204,21,0.6)] z-20 pointer-events-none rounded" style={{ left: `${activeHighlight.box.x}%`, top: `${activeHighlight.box.y}%`, width: `${activeHighlight.box.w}%`, height: `${activeHighlight.box.h}%` }} />
+                            <div 
+                                className="absolute border-2 border-yellow-400 bg-yellow-400/20 shadow-[0_0_15px_rgba(250,204,21,0.6)] z-20 pointer-events-none rounded" 
+                                style={{ 
+                                    left: `${activeHighlight.box.x}%`, 
+                                    top: `${activeHighlight.box.y}%`, 
+                                    width: `${activeHighlight.box.w}%`, 
+                                    height: `${activeHighlight.box.h}%` 
+                                }} 
+                            />
                         )}
                     </div>
                 </div>
             </div>
             <div className="flex-1 p-6 overflow-y-auto">
                 <div className="flex justify-between items-start mb-6">
-                    <div><h3 className="text-lg font-bold text-gray-800">{item.label} Data</h3><p className="text-xs text-gray-400">Extracted parameters</p></div>
-                    {!item.isLoading && <span className={`px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700`}>Verified</span>}
+                    <div>
+                        <h3 className="text-lg font-bold text-gray-800">{item.label} Data</h3>
+                        <p className="text-xs text-gray-400">Extracted parameters</p>
+                    </div>
+                    {!item.isLoading && <span className="px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700">Verified</span>}
                 </div>
                 {item.isLoading ? (
-                    <div className="space-y-4 animate-pulse"><div className="flex items-center justify-center pt-4 text-xs text-gray-400"><Loader2 className="w-4 h-4 animate-spin mr-2" />Processing...</div></div>
+                    <div className="space-y-4 animate-pulse">
+                        <div className="flex items-center justify-center pt-4 text-xs text-gray-400">
+                            <Loader2 className="w-4 h-4 animate-spin mr-2" />Processing...
+                        </div>
+                    </div>
                 ) : (
                     <div className="grid grid-cols-1 gap-4">
-                        {item.data.length === 0 ? <div className="text-sm text-gray-400 italic">No data mapped.</div> : item.data.map((field, idx) => (
-                            <div key={idx} className="relative group">
-                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1 tracking-wide">{field.key}</label>
-                                <div className="relative">
-                                    <input type="text" value={field.value} onFocus={() => setActiveHighlight({ itemId: item.id, box: field.box })} onChange={(e) => handleFieldChange(item.id, field.key, e.target.value)} className={`w-full pl-3 pr-8 py-2.5 rounded-md border text-sm font-medium transition-colors ${field.isEdited ? 'border-indigo-500 bg-indigo-50 text-indigo-900 focus:ring-1 focus:ring-indigo-500' : 'border-gray-300 bg-white text-gray-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'}`} />
-                                    <Edit3 className={`absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none ${field.isEdited ? 'text-indigo-500' : 'text-gray-400'}`} />
+                        {item.data.length === 0 ? (
+                            <div className="text-sm text-gray-400 italic">No data mapped.</div>
+                        ) : (
+                            item.data.map((field, idx) => (
+                                <div key={idx} className="relative group">
+                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1 tracking-wide">{field.key}</label>
+                                    <div className="relative">
+                                        <input 
+                                            type="text" 
+                                            value={field.value} 
+                                            onFocus={() => setActiveHighlight({ itemId: item.id, box: field.box })} 
+                                            onChange={(e) => handleFieldChange(item.id, field.key, e.target.value)} 
+                                            className={`w-full pl-3 pr-8 py-2.5 rounded-md border text-sm font-medium transition-colors ${field.isEdited ? 'border-indigo-500 bg-indigo-50 text-indigo-900 focus:ring-1 focus:ring-indigo-500' : 'border-gray-300 bg-white text-gray-800 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500'}`} 
+                                        />
+                                        <Edit3 className={`absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none ${field.isEdited ? 'text-indigo-500' : 'text-gray-400'}`} />
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))
+                        )}
                     </div>
                 )}
             </div>
         </div>
     );
 };
+
 export default VerificationPage;
