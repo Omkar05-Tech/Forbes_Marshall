@@ -196,3 +196,14 @@ async def view_image(upload_id: str):
         return Response(content=base64.b64decode(b64_string), media_type="image/png")
     except Exception:
         return {"error": "Failed to decode"}
+    
+# --- Add this to backend/main.py ---
+@app.get("/api/health")
+async def health_check():
+    """Health check endpoint for Render deployment."""
+    try:
+        # Check if MongoDB is alive
+        await app.mongodb_client.admin.command('ping')
+        return {"status": "healthy", "database": "connected"}
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Unhealthy: {str(e)}")

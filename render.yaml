@@ -1,0 +1,40 @@
+services:
+  # 1. MongoDB Service (Private Worker)
+  - type: worker
+    name: forbes-db
+    runtime: docker
+    image: mongo:latest # Pulls official image
+    disk:
+      name: mongo-data
+      mountPath: /data/db
+      sizeGB: 1
+
+  # 2. FastAPI Backend
+  - type: web
+    name: forbes-backend
+    runtime: docker
+    dockerContext: ./backend
+    dockerfile: Dockerfile
+    plan: free
+    envVars:
+      - key: MONGO_URI
+        value: mongodb://forbes-db:27017/forbes_marshall_temp
+      - key: GOOGLE_API_KEY
+        sync: false # You will paste this in the Render UI
+      - key: DB_NAME
+        value: forbes_marshall_temp
+    healthCheckPath: /api/health
+
+  # 3. React Frontend
+  - type: web
+    name: forbes-frontend
+    runtime: docker
+    dockerContext: ./frontend
+    dockerfile: Dockerfile
+    plan: free
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          name: forbes-backend
+          type: web
+          property: url
